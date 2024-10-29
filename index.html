@@ -13,9 +13,16 @@
         <button id="up">▲</button>
         <button id="down">▼</button>
     </div>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/110/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.110/examples/js/controls/OrbitControls.js"></script>
-    <script src="script.js"></script>
+    
+    <!-- Usando uma versão mais recente do Three.js e dos módulos -->
+    <script type="module">
+        import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.140.0/build/three.module.js';
+        import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.140.0/examples/jsm/controls/OrbitControls.js';
+        import { VRButton } from 'https://cdn.jsdelivr.net/npm/three@0.140.0/examples/jsm/webxr/VRButton.js';
+
+        // Inicialize o seu script passando o THREE como parâmetro
+        import { init } from './script.js';
+        init(THREE, OrbitControls, VRButton);
+    </script>
 </body>
 </html>
