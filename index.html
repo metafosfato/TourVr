@@ -30,7 +30,7 @@
 
 
         const geometry = new THREE.SphereGeometry(14, 50, 16);
-        geometry.scale(1, 1, 1)
+        geometry.scale(-1, 1, 1)
 
         const controls = new THREE.OrbitControls(camera, renderer.domElement);
             controls.enableDamping = true;
@@ -47,8 +47,8 @@
             const material = new THREE.MeshBasicMaterial({ map: texture });
             const sphere = new THREE.Mesh(geometry, material);
             // Posicionando a câmera
-            camera.position.z = 25;
-            //camera.position.set(0,0,0)
+            //camera.position.z = 25;
+            camera.position.set(0,0,0)
             scene.add(sphere);
 
 
