@@ -1,55 +1,80 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>360 VR Scene with Three.js</title>
+    <title>Esfera com Textura</title>
     <style>
-        body { margin: 0; }
-        canvas { display: block; }
-    </style>
-</head>
-<body>
-    <script type="module">
-        import * as THREE from 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.module.min.js';
-        import { VRButton } from 'https://threejs.org/examples/jsm/webxr/VRButton.js';
-
-        // Configuração da cena, câmera e renderizador
-        const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-        const renderer = new THREE.WebGLRenderer({ antialias: true });
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.xr.enabled = true;
-        document.body.appendChild(renderer.domElement);
-        document.body.appendChild(VRButton.createButton(renderer));
-
-        // Textura panorâmica (imagem 360º)
-        const textureLoader = new THREE.TextureLoader();
-        textureLoader.load('imagens/ponto1.jpg', (texture) => {
-            const geometry = new THREE.SphereGeometry(400, 50, 30);
-            geometry.scale(-1, 1, 1); // Inverter a esfera para visualização interna
-
-            const material = new THREE.MeshBasicMaterial({ map: texture });
-            const sphere = new THREE.Mesh(geometry, material);
-            scene.add(sphere);
-        });
-
-        // Função de renderização
-        function animate() {
-            renderer.setAnimationLoop(() => {
-                renderer.render(scene, camera);
-            });
+        body {
+            margin: 0;
         }
 
-        animate();
+        canvas {
+            display: block;
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128/examples/js/controls/OrbitControls.js"></script>
+</head>
 
-        // Ajuste de redimensionamento
+<body>
+    <script>
+
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+
+
+        const geometry = new THREE.SphereGeometry(14, 50, 16);
+        geometry.scale(1, 1, 1)
+
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            controls.enableZoom = true;
+            controls.enablePan = false;
+            console.log("Controles de órbita ativados.");
+
+
+        const loader = new THREE.TextureLoader();
+
+        loader.load('imagens/ponto1.jpg', function (texture) {
+            texture.colorSpace = THREE.SRGBColorSpace;
+            const material = new THREE.MeshBasicMaterial({ map: texture });
+            const sphere = new THREE.Mesh(geometry, material);
+            // Posicionando a câmera
+            camera.position.z = 25;
+            //camera.position.set(0,0,0)
+            scene.add(sphere);
+
+
+            function animate() {
+                requestAnimationFrame(animate);
+                //sphere.rotation.x += 0.001; // Rotação da esfera
+                //sphere.rotation.y += 0.01; // Rotação da esfera
+                renderer.render(scene, camera);
+            }
+            animate(); // Iniciando a animação
+        },
+            undefined,
+            function (err) {
+                console.error('Um erro aconteceu ao carregar a textura:', err);
+            }
+        );
+
+
+
+        // Ajuste do tamanho do renderizador quando a janela é redimensionada
         window.addEventListener('resize', () => {
-            renderer.setSize(window.innerWidth, window.innerHeight);
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
         });
     </script>
 </body>
-</html>
 
+</html>
