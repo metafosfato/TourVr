@@ -1,66 +1,80 @@
 <!DOCTYPE html>
-<html lang="pt-br">
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
+    <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3D Tour</title>
-    <link rel="stylesheet" href="style.css">
-    <title>360 VR Scene with Three.js</title>
+    <title>VR Tour</title>
     <style>
         body { margin: 0; }
-        canvas { display: block; }
+        canvas { width: 100%; height: 100%; }
     </style>
 </head>
 <body>
-    <div id="navigation">
-        <button id="left">◀</button>
-        <button id="right">▶</button>
-        <button id="up">▲</button>
-        <button id="down">▼</button>
-    </div>
-    
-    <!-- Usando uma versão mais recente do Three.js e dos módulos -->
     <script type="module">
-        import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.140.0/build/three.module.js';
-        import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.140.0/examples/jsm/controls/OrbitControls.js';
-        import { VRButton } from 'https://cdn.jsdelivr.net/npm/three@0.140.0/examples/jsm/webxr/VRButton.js';
-        import * as THREE from 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.module.min.js';
-        import { VRButton } from 'https://threejs.org/examples/jsm/webxr/VRButton.js';
+        import * as THREE from '../three.module.js';
+        import { OrbitControls } from '../OrbitControls.js';
 
-        // Inicialize o seu script passando o THREE como parâmetro
-        import { init } from './script.js';
-        init(THREE, OrbitControls, VRButton);
-        // Configuração da cena, câmera e renderizador
-        const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-        const renderer = new THREE.WebGLRenderer({ antialias: true });
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.xr.enabled = true;
-        document.body.appendChild(renderer.domElement);
-        document.body.appendChild(VRButton.createButton(renderer));
-        // Textura panorâmica (imagem 360º)
-        const textureLoader = new THREE.TextureLoader();
-        textureLoader.load('imagens/ponto1.jpg', (texture) => {
-            const geometry = new THREE.SphereGeometry(500, 60, 40);
-            geometry.scale(-1, 1, 1); // Inverter a esfera para visualização interna
-            const material = new THREE.MeshBasicMaterial({ map: texture });
-            const sphere = new THREE.Mesh(geometry, material);
-            scene.add(sphere);
-        });
-        // Função de renderização
-        function animate() {
-            renderer.setAnimationLoop(() => {
-                renderer.render(scene, camera);
-            });
-        }
-        animate();
-        // Ajuste de redimensionamento
-        window.addEventListener('resize', () => {
+        let scene, camera, renderer;
+
+        function init() {
+            // Criando a cena
+            scene = new THREE.Scene();
+
+            // Configurando a câmera
+            camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 45, 30000);
+            camera.position.set(-900, -200, -900);
+
+            // Configurando o renderer
+            renderer = new THREE.WebGLRenderer({ antialias: true });
             renderer.setSize(window.innerWidth, window.innerHeight);
+            document.body.appendChild(renderer.domElement);
+
+            // Adicionando os controles de órbita
+            const controls = new OrbitControls(camera, renderer.domElement);
+            controls.addEventListener('change', animate);
+
+            // Carregando as texturas para cada lado da skybox
+            const textureLoader = new THREE.TextureLoader();
+            const materialParams = [
+                '/imagens/frente.jpg',
+                '/imagens/tras.jpg',
+                '/imagens/cima.jpg',
+                '/imagens/baixo.jpg',
+                '/imagens/direita.jpg',
+                '/imagens/esquerda.jpg'
+            ];
+
+            // Criando os materiais da skybox
+            const materials = materialParams.map(path => 
+                new THREE.MeshBasicMaterial({ 
+                    map: textureLoader.load(path),
+                    side: THREE.BackSide 
+                })
+            );
+
+            // Criando e adicionando a skybox à cena
+            const skyboxGeo = new THREE.BoxGeometry(10000, 10000, 10000);
+            const skybox = new THREE.Mesh(skyboxGeo, materials);
+            scene.add(skybox);
+
+            // Lidar com redimensionamento da janela
+            window.addEventListener('resize', onWindowResize, false);
+
+            animate();
+        }
+
+        function onWindowResize() {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
-        });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        function animate() {
+            renderer.render(scene, camera);
+            requestAnimationFrame(animate);
+        }
+
+        init();
     </script>
 </body>
 </html>
