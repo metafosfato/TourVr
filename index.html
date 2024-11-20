@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -39,6 +40,7 @@
         }
     </style>
 </head>
+
 <body>
     <button id="vr-button" disabled>Enter VR</button>
 
@@ -60,7 +62,7 @@
             // Configurando o renderer
             renderer = new THREE.WebGLRenderer({ antialias: true });
             renderer.setSize(window.innerWidth, window.innerHeight);
-            
+
             // Habilitar renderização WebXR
             renderer.xr.enabled = true;
             document.body.appendChild(renderer.domElement);
@@ -75,12 +77,12 @@
             // Carregando as texturas para cada lado da skybox
             const textureLoader = new THREE.TextureLoader();
             const materialParams = [
-                'imagens/frente.jpg',
-                'imagens/trais.jpg',
-                'imagens/cima.jpg',
-                'imagens/baixo.jpg',
-                'imagens/direita.jpg',
-                'imagens/esquerda.jpg'
+                'https://metafosfato.github.io/TourVr/imagens/frente.jpg',
+                'https://metafosfato.github.io/TourVr/imagens/trais.jpg',
+                'https://metafosfato.github.io/TourVr/imagens/cima.jpg',
+                'https://metafosfato.github.io/TourVr/imagens/baixo.jpg',
+                'https://metafosfato.github.io/TourVr/imagens/direita.jpg',
+                'https://metafosfato.github.io/TourVr/imagens/esquerda.jpg'
             ];
 
             // Criando os materiais da skybox
@@ -108,7 +110,7 @@
 
         function setupVRButton() {
             const vrButton = document.getElementById('vr-button');
-            
+
             // Verificar suporte WebXR
             if ('xr' in navigator) {
                 navigator.xr.isSessionSupported('immersive-vr').then((supported) => {
@@ -143,4 +145,5 @@
         init();
     </script>
 </body>
+
 </html>
