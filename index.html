@@ -15,8 +15,8 @@
         import { VRButton } from 'https://unpkg.com/three@0.126.1/examples/jsm/webxr/VRButton.js';
 
         let camera, scene, renderer, controls;
-        let alpha = 0, beta = 0, gamma = 0;
-        let useGyroscope = true; // Sempre ativado
+        let deviceOrientation = { alpha: 0, beta: 0, gamma: 0 };
+        let isGyroscopeActive = false;
 
         function createScene(equirectangularTexture) {
             scene = new THREE.Scene();
@@ -42,7 +42,7 @@
             controls = new OrbitControls(camera, renderer.domElement);
             controls.enableZoom = true;
             controls.enablePan = false;
-            controls.enableRotate = true; // Mantém rotação manual ativa
+            controls.enableRotate = true;
 
             document.body.appendChild(VRButton.createButton(renderer));
 
@@ -55,11 +55,13 @@
                 DeviceOrientationEvent.requestPermission()
                     .then(permissionState => {
                         if (permissionState === 'granted') {
+                            isGyroscopeActive = true;
                             window.addEventListener('deviceorientation', onDeviceOrientation, true);
                         }
                     })
                     .catch(console.error);
             } else {
+                isGyroscopeActive = true;
                 window.addEventListener('deviceorientation', onDeviceOrientation, true);
             }
         }
@@ -72,25 +74,28 @@
 
         function onDeviceOrientation(event) {
             if (event.alpha !== null) {
-                alpha = THREE.MathUtils.degToRad(event.alpha);
-                beta = THREE.MathUtils.degToRad(event.beta);
-                gamma = THREE.MathUtils.degToRad(event.gamma);
+                deviceOrientation.alpha = THREE.MathUtils.degToRad(event.alpha);
+                deviceOrientation.beta = THREE.MathUtils.degToRad(event.beta);
+                deviceOrientation.gamma = THREE.MathUtils.degToRad(event.gamma);
             }
         }
 
         function updateCameraRotation() {
-            if (useGyroscope) {
-                const quaternion = new THREE.Quaternion();
-                const euler = new THREE.Euler(beta, alpha, -gamma, 'YXZ');
-                quaternion.setFromEuler(euler);
-                camera.quaternion.slerp(quaternion, 0.1); // Suaviza a rotação
+            if (isGyroscopeActive) {
+                let euler = new THREE.Euler(
+                    deviceOrientation.beta, 
+                    deviceOrientation.alpha, 
+                    -deviceOrientation.gamma, 
+                    'YXZ'
+                );
+                camera.quaternion.setFromEuler(euler);
             }
         }
 
         function animate() {
             renderer.setAnimationLoop(() => {
                 updateCameraRotation();
-                controls.update(); // Garante que a rotação manual funcione junto com o giroscópio
+                controls.update();
                 renderer.render(scene, camera);
             });
         }
