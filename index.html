@@ -16,6 +16,7 @@
 
         let camera, scene, renderer, controls;
         let alpha = 0, beta = 0, gamma = 0;
+        let useGyroscope = true; // Sempre ativado
 
         function createScene(equirectangularTexture) {
             scene = new THREE.Scene();
@@ -41,6 +42,7 @@
             controls = new OrbitControls(camera, renderer.domElement);
             controls.enableZoom = true;
             controls.enablePan = false;
+            controls.enableRotate = true; // Mantém rotação manual ativa
 
             document.body.appendChild(VRButton.createButton(renderer));
 
@@ -77,16 +79,18 @@
         }
 
         function updateCameraRotation() {
-            const quaternion = new THREE.Quaternion();
-            const euler = new THREE.Euler(beta, alpha, -gamma, 'YXZ');
-            quaternion.setFromEuler(euler);
-            camera.quaternion.slerp(quaternion, 0.1); // Suaviza a rotação
+            if (useGyroscope) {
+                const quaternion = new THREE.Quaternion();
+                const euler = new THREE.Euler(beta, alpha, -gamma, 'YXZ');
+                quaternion.setFromEuler(euler);
+                camera.quaternion.slerp(quaternion, 0.1); // Suaviza a rotação
+            }
         }
 
         function animate() {
             renderer.setAnimationLoop(() => {
                 updateCameraRotation();
-                controls.update();
+                controls.update(); // Garante que a rotação manual funcione junto com o giroscópio
                 renderer.render(scene, camera);
             });
         }
