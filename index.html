@@ -45,7 +45,21 @@
             document.body.appendChild(VRButton.createButton(renderer));
 
             window.addEventListener('resize', onWindowResize, false);
-            window.addEventListener('deviceorientation', onDeviceOrientation, true);
+            requestDeviceOrientationPermission();
+        }
+
+        function requestDeviceOrientationPermission() {
+            if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+                DeviceOrientationEvent.requestPermission()
+                    .then(permissionState => {
+                        if (permissionState === 'granted') {
+                            window.addEventListener('deviceorientation', onDeviceOrientation, true);
+                        }
+                    })
+                    .catch(console.error);
+            } else {
+                window.addEventListener('deviceorientation', onDeviceOrientation, true);
+            }
         }
 
         function onWindowResize() {
@@ -55,14 +69,18 @@
         }
 
         function onDeviceOrientation(event) {
-            alpha = THREE.MathUtils.degToRad(event.alpha || 0);
-            beta = THREE.MathUtils.degToRad(event.beta || 0);
-            gamma = THREE.MathUtils.degToRad(event.gamma || 0);
+            if (event.alpha !== null) {
+                alpha = THREE.MathUtils.degToRad(event.alpha);
+                beta = THREE.MathUtils.degToRad(event.beta);
+                gamma = THREE.MathUtils.degToRad(event.gamma);
+            }
         }
 
         function updateCameraRotation() {
+            const quaternion = new THREE.Quaternion();
             const euler = new THREE.Euler(beta, alpha, -gamma, 'YXZ');
-            camera.quaternion.setFromEuler(euler);
+            quaternion.setFromEuler(euler);
+            camera.quaternion.slerp(quaternion, 0.1); // Suaviza a rotação
         }
 
         function animate() {
