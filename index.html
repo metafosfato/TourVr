@@ -15,6 +15,7 @@
         import { VRButton } from 'https://unpkg.com/three@0.126.1/examples/jsm/webxr/VRButton.js';
 
         let camera, scene, renderer, controls;
+        let alpha = 0, beta = 0, gamma = 0;
 
         function createScene(equirectangularTexture) {
             scene = new THREE.Scene();
@@ -41,9 +42,10 @@
             controls.enableZoom = true;
             controls.enablePan = false;
 
-            document.body.appendChild(VRButton.createButton(renderer)); //botão vr, exclui o css
+            document.body.appendChild(VRButton.createButton(renderer));
 
             window.addEventListener('resize', onWindowResize, false);
+            window.addEventListener('deviceorientation', onDeviceOrientation, true);
         }
 
         function onWindowResize() {
@@ -52,8 +54,20 @@
             renderer.setSize(window.innerWidth, window.innerHeight);
         }
 
+        function onDeviceOrientation(event) {
+            alpha = THREE.MathUtils.degToRad(event.alpha || 0);
+            beta = THREE.MathUtils.degToRad(event.beta || 0);
+            gamma = THREE.MathUtils.degToRad(event.gamma || 0);
+        }
+
+        function updateCameraRotation() {
+            const euler = new THREE.Euler(beta, alpha, -gamma, 'YXZ');
+            camera.quaternion.setFromEuler(euler);
+        }
+
         function animate() {
             renderer.setAnimationLoop(() => {
+                updateCameraRotation();
                 controls.update();
                 renderer.render(scene, camera);
             });
