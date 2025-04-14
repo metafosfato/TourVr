@@ -2,10 +2,10 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>VR Equirectangular Skybox</title>
+    <title>VR Equirectangular Skybox com Múltiplos Hotspots</title>
     <style>
         body { margin: 0; overflow: hidden; }
-        canvas { width: 100%; height: 100%; }
+        canvas { width: 100%; height: 100%; display: block; }
     </style>
 </head>
 <body>
@@ -17,6 +17,11 @@
         let camera, scene, renderer, controls;
         let deviceOrientation = { alpha: 0, beta: 0, gamma: 0 };
         let isGyroscopeActive = false;
+
+        let raycaster = new THREE.Raycaster();
+        let mouse = new THREE.Vector2();
+        let hotspots = []; 
+        let textureLoader = new THREE.TextureLoader();
 
         function createScene(equirectangularTexture) {
             scene = new THREE.Scene();
@@ -30,7 +35,6 @@
             renderer.xr.enabled = true;
             document.body.appendChild(renderer.domElement);
 
-            const textureLoader = new THREE.TextureLoader();
             const texture = textureLoader.load(equirectangularTexture);
             
             const sphereGeometry = new THREE.SphereGeometry(500, 60, 40);
@@ -45,9 +49,42 @@
             controls.enableRotate = true;
 
             document.body.appendChild(VRButton.createButton(renderer));
-
             window.addEventListener('resize', onWindowResize, false);
+            window.addEventListener('click', onClick, false);
+
             requestDeviceOrientationPermission();
+        }
+
+        function addHotspot(x, y, z, onClick, iconUrl = 'https://cdn-icons-png.flaticon.com/512/1828/1828817.png') {
+            const hotspotTexture = textureLoader.load(iconUrl);
+            const hotspotMaterial = new THREE.SpriteMaterial({ 
+                map: hotspotTexture,
+                depthTest: false
+            });
+
+            const sprite = new THREE.Sprite(hotspotMaterial);
+            sprite.scale.set(20, 20, 1);
+            sprite.position.set(x, y, z);
+            sprite.renderOrder = 999;
+            sprite.userData.onClick = onClick;
+            scene.add(sprite);
+            
+ 
+            hotspots.push(sprite);
+            
+            return sprite; 
+        }
+
+        function addMultipleHotspots(hotspotsData) {
+            hotspotsData.forEach(data => {
+                addHotspot(
+                    data.position.x, 
+                    data.position.y, 
+                    data.position.z, 
+                    data.onClick,
+                    data.iconUrl
+                );
+            });
         }
 
         function requestDeviceOrientationPermission() {
@@ -100,8 +137,53 @@
             });
         }
 
+        function onClick(event) {
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+            raycaster.setFromCamera(mouse, camera);
+            
+            const intersects = raycaster.intersectObjects(hotspots);
+            if (intersects.length > 0) {
+                const clickedHotspot = intersects[0].object;
+                if (clickedHotspot.userData.onClick) {
+                    clickedHotspot.userData.onClick();
+                }
+            }
+        }
+
         function init(equirectangularTexture) {
             createScene(equirectangularTexture);
+            
+
+            const hotspotsData = [
+                {
+                    position: { x: -325, y: 0, z: 200 },
+                    onClick: () => {
+                        alert("Hotspot 1 clicado!");
+                        console.log("Hotspot 1 clicado!");
+                    },
+                    iconUrl: 'https://cdn-icons-png.flaticon.com/512/1828/1828817.png'
+                },
+                {
+                    position: { x: 400, y: 0, z: 150},
+                    onClick: () => {
+                        alert("Hotspot 2 clicado!");
+                        console.log("Hotspot 2 clicado!");
+                    },
+                    iconUrl: 'https://cdn-icons-png.flaticon.com/512/1828/1828817.png'
+                },
+                {
+                    position: { x: -60, y: 0, z: -300 },
+                    onClick: () => {
+                        alert("Hotspot 3 clicado!");
+                        console.log("Hotspot 3 clicado!");
+                    },
+                    iconUrl: 'https://cdn-icons-png.flaticon.com/512/1828/1828817.png'
+                }
+            ];
+            
+            addMultipleHotspots(hotspotsData);
+            
             animate();
         }
 
