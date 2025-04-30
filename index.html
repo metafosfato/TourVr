@@ -23,6 +23,8 @@
         let hotspots = []; 
         let textureLoader = new THREE.TextureLoader();
 
+        let skybox;
+
         function createScene(equirectangularTexture) {
             scene = new THREE.Scene();
 
@@ -40,7 +42,7 @@
             const sphereGeometry = new THREE.SphereGeometry(500, 60, 40);
             sphereGeometry.scale(-1, 1, 1); 
             const sphereMaterial = new THREE.MeshBasicMaterial({ map: texture });
-            const skybox = new THREE.Mesh(sphereGeometry, sphereMaterial);
+            skybox = new THREE.Mesh(sphereGeometry, sphereMaterial); // salvei globalmente
             scene.add(skybox);
           
             controls = new OrbitControls(camera, renderer.domElement);
@@ -69,9 +71,7 @@
             sprite.userData.onClick = onClick;
             scene.add(sprite);
             
- 
             hotspots.push(sprite);
-            
             return sprite; 
         }
 
@@ -146,26 +146,32 @@
             if (intersects.length > 0) {
                 const clickedHotspot = intersects[0].object;
                 if (clickedHotspot.userData.onClick) {
-                    clickedHotspot.userData.onClick();
+                    clickedHotspot.userData.onClick(clickedHotspot);
                 }
             }
         }
 
+        function changeSceneFromHotspot(hotspot, newTextureUrl) {
+            const newTexture = textureLoader.load(newTextureUrl, () => {
+                skybox.material.map = newTexture;
+                skybox.material.needsUpdate = true;
+                console.log('mudando para: '  + newTextureUrl);
+            });
+        }
+
         function init(equirectangularTexture) {
             createScene(equirectangularTexture);
-            
 
             const hotspotsData = [
                 {
                     position: { x: -325, y: 0, z: 200 },
-                    onClick: () => {
-                        alert("Hotspot 1 clicado!");
-                        console.log("Hotspot 1 clicado!");
+                    onClick: (hotspot) => {
+                        changeSceneFromHotspot(hotspot, 'https://metafosfato.github.io/TourVr/imagens/Pampa2.jpg');
                     },
                     iconUrl: 'https://cdn-icons-png.flaticon.com/512/1828/1828817.png'
                 },
                 {
-                    position: { x: 400, y: 0, z: 150},
+                    position: { x: 400, y: 0, z: 150 },
                     onClick: () => {
                         alert("Hotspot 2 clicado!");
                         console.log("Hotspot 2 clicado!");
@@ -183,7 +189,6 @@
             ];
             
             addMultipleHotspots(hotspotsData);
-            
             animate();
         }
 
