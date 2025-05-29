@@ -130,7 +130,7 @@ export function loadSceneContent(sceneName) {
                     isTransitioning = false;
                     console.log("Transição completa. Cena atual:", sceneName);
 
-                    // o pré render que comentamos
+                    // o pré render que comentamos sobre, mas não sei se a logica está correta
                     if (typeof preloadLinkedTextures === 'function') { 
                         preloadLinkedTextures(sceneConfig);
                     }
